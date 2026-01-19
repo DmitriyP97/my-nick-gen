@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Nickname Generator - Заработок на никах</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #0f0f0f; color: #e0e0e0; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .card { background: #1a1a1a; padding: 20px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); width: 100%; max-width: 500px; border: 1px solid #333; position: relative; z-index: 2; }
+        h1 { color: #00d4ff; margin-bottom: 10px; font-size: 24px; }
+        
+        /* Блоки рекламы */
+        .ad-slot { width: 100%; max-width: 500px; background: #252525; margin: 15px 0; padding: 20px; border: 1px dashed #444; border-radius: 10px; color: #888; font-size: 13px; text-align: center; box-sizing: border-box; }
+        
+        .control-group { text-align: left; margin-bottom: 12px; background: #252525; padding: 12px; border-radius: 10px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; color: #aaa; }
+        select, input[type="number"], input[type="text"] { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #444; background: #121212; color: white; box-sizing: border-box; }
+        
+        .checkbox-group { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
+        .checkbox-group input { width: auto; }
+        
+        #nickname-display { font-size: 30px; font-weight: bold; color: #00ffaa; background: #000; padding: 20px; border-radius: 10px; margin: 10px 0; min-height: 40px; border: 1px solid #00ffaa; text-shadow: 0 0 10px rgba(0,255,170,0.3); }
+        
+        button { width: 100%; background: linear-gradient(45deg, #00d4ff, #0055ff); color: white; border: none; padding: 18px; font-size: 18px; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        button:hover { transform: scale(1.02); box-shadow: 0 5px 15px rgba(0,85,255,0.4); }
+        
+        .affiliate-link { margin-top: 20px; display: block; color: #ff9900; text-decoration: none; font-weight: bold; font-size: 14px; border: 1px solid #ff9900; padding: 10px; border-radius: 8px; transition: 0.3s; }
+        .affiliate-link:hover { background: #ff9900; color: #000; }
+        .error { color: #ff4d4d; font-size: 12px; margin-top: 5px; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="ad-slot">
+        <p>РЕКЛАМА: Купить игровые скины или VPN</p>
+        </div>
+
+    <div class="card">
+        <h1>NickGen Pro AI</h1>
+
+        <div id="nickname-display">Нажми Сгенерировать</div>
+
+        <div class="control-group">
+            <label>Структура:</label>
+            <select id="structure">
+                <option value="word_word_num">Слово + Слово + Число</option>
+                <option value="word_num">Одно слово + Число</option>
+                <option value="word_word">Только два слова</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label class="checkbox-group">
+                <input type="checkbox" id="custom-num-toggle" onchange="document.getElementById('custom-num').disabled = !this.checked"> 
+                Свои цифры
+            </label>
+            <input type="text" id="custom-num" placeholder="Напр: 777" disabled maxlength="5">
+        </div>
+
+        <div class="control-group">
+            <label>Длина (6-20 символов):</label>
+            <input type="number" id="length-limit" placeholder="Автоматически" min="6" max="20">
+            <div id="length-error" class="error">Ошибка: длина от 6 до 20!</div>
+        </div>
+
+        <button onclick="generateNickname()">Сгенерировать</button>
+
+        <a href="https://www.reg.ru/domain/new/" target="_blank" id="domain-link" class="affiliate-link">
+            🔗 Проверить доступность домена для этого ника
+        </a>
+    </div>
+
+    <div class="ad-slot">
+        <p>РЕКЛАМА: Лучшие игровые ноутбуки 2026</p>
+        </div>
+
+<script>
+    
+    const prefixes = ["Dark", "Ultra", "Cyber", "Neo", "Mega", "Shadow", "Alpha", "Iron", "Void", "Swift", "Frost", "Magma", "Zenith", "Blaze", "Chaos", "Ghost", "Viper", "Storm", "Titan", "Rogue", "Elite", "Prime", "Night", "Flash", "Global", "Cobra", "Aero", "Wild", "Mistic", "Frozen", "Liquid", "Solar", "Lunar", "Ozone", "Vector", "Silent", "Hidden", "Mad", "Rage", "Acid", "Toxic", "Noble", "Steel", "Grim", "Velvet", "Amber", "Turbo", "Hyper", "Astral", "Atomic", "Aura", "Azure", "Bane", "Beast", "Black", "Blood", "Blue", "Bold", "Bone", "Brave", "Bright", "Brutal", "Bullet", "Burning", "Cinder", "Cloud", "Cold", "Comet", "Cosmic", "Crimson", "Crystal", "Cursed", "Dead", "Death", "Deep", "Delta", "Demon", "Desert", "Diamond", "Divine", "Doom", "Dragon", "Dream", "Dust", "Echo", "Electric", "Ember", "Emerald", "Epic", "Eternal", "Evil", "Fallen", "Fatal", "Fear", "Feral", "Fierce", "Fire", "Flame", "Force", "Forest", "Gold", "Grand", "Gray", "Green", "Hacker", "Halo", "Hard", "Heavy", "Hell", "Holy", "Ice", "Inferno", "Infinity", "Jade", "Jungle", "Killer", "Light", "Lightning", "Lion", "Lost", "Magic", "Master", "Metal", "Mist", "Moon", "Mountain", "Mystic", "Neon", "Noble", "Nova", "Ocean", "Omega", "Oracle", "Phantom", "Phoenix", "Plasma", "Power", "Pure", "Quantum", "Quartz", "Quick", "Quiet", "Radar", "Rain", "Rapid", "Razor", "Red", "Relentless", "Rift", "Rocket", "Royal", "Savage", "Scarlet", "Secret", "Silver", "Skull", "Sky", "Smoke", "Snow", "Sonic", "Soul", "Space", "Spark", "Specter", "Spider", "Spirit", "Star", "Static", "Steam", "Stone", "Sun", "Super", "Thunder", "Tiger", "Total", "Tough", "Triple", "True", "Ultimate", "Under", "Vampire", "Veloc", "Venom", "Volt", "Vortex", "White", "Wicked", "Winter", "Wolf", "Xenon", "Yellow", "Zero"];
+    const suffixes = ["Killer", "Hunter", "Warrior", "Lord", "Ghost", "Knight", "Zero", "Storm", "Viper", "Wolf", "Demon", "Angel", "King", "Beast", "Dragon", "Slayer", "Blade", "Rex", "Rider", "Walker", "Watcher", "Seeker", "Punk", "Soul", "Spirit", "Brave", "Eagle", "Falcon", "Hawk", "Raven", "Sniper", "Savage", "Talon", "Vortex", "Wanderer", "X", "Y", "Z", "Master", "Wizard", "Ninja", "Samurai", "Hacker", "Chief", "Captain", "General", "Saint", "Mayor", "Hero", "Enemy", "Ace", "Agent", "Archer", "Assassin", "Bandit", "Baron", "Bishop", "Boss", "Boy", "Brute", "Caster", "Champ", "Commander", "Cook", "Crawler", "Crusher", "Czar", "Dancer", "Defender", "Destroyer", "Devil", "Doctor", "Duke", "Eater", "Edge", "Emperor", "Expert", "Fighter", "Fish", "Fist", "Freak", "Giant", "Gladiator", "Gnat", "God", "Golem", "Goon", "Guard", "Gunner", "Guy", "Hammer", "Hand", "Head", "Heart", "Host", "Hulk", "Jack", "Jester", "Judge", "Justice", "Keeper", "Kid", "Legend", "Lich", "Machine", "Mage", "Magician", "Major", "Maker", "Marine", "Marshal", "Maverick", "Mechanic", "Merc", "Merchant", "Minion", "Monster", "Mummy", "Mutant", "Mystery", "Nomad", "Officer", "Ogre", "Outlaw", "Overlord", "Paladin", "Panther", "Patriot", "Pest", "Pilot", "Pirate", "Player", "Prince", "Prophet", "Queen", "Ranger", "Rebel", "Reaper", "Ripper", "Runner", "Sage", "Scout", "Sentinel", "Serpent", "Shadow", "Shaman", "Shark", "Shield", "Shooter", "Soldier", "Sorcerer", "Stalker", "Striker", "Tank", "Templar", "Terror", "Thief", "Thug", "Troll", "Tyrant", "Vandal", "Viking", "Villain", "Vulture", "Warlock", "Witch", "Wraith", "Zealot", "Zombie"];
+
+    function generateNickname() {
+        const struct = document.getElementById('structure').value;
+        const useNum = document.getElementById('custom-num-toggle').checked;
+        const customNum = document.getElementById('custom-num').value;
+        const lengthInput = document.getElementById('length-limit').value;
+        const error = document.getElementById('length-error');
+        
+        let lengthLimit = lengthInput ? parseInt(lengthInput) : null;
+
+        if (lengthLimit && (lengthLimit < 6 || lengthLimit > 20)) {
+            error.style.display = 'block';
+            return;
+        } else {
+            error.style.display = 'none';
+        }
+
+        let p = prefixes[Math.floor(Math.random() * prefixes.length)];
+        let s = suffixes[Math.floor(Math.random() * suffixes.length)];
+        let num = "";
+
+        if (struct.includes("num")) {
+            num = useNum && customNum ? customNum : Math.floor(Math.random() * 99).toString();
+        }
+
+        let finalNick = "";
+        if (lengthLimit) {
+            finalNick = adjustLength(struct, p, s, num, lengthLimit);
+        } else {
+            if (struct === "word_num") finalNick = p + num;
+            else if (struct === "word_word") finalNick = p + s;
+            else finalNick = p + s + num;
+        }
+
+        document.getElementById('nickname-display').innerText = finalNick;
+
+        const domainUrl = "https://www.reg.ru/buy/domains/?query=" + finalNick;
+        document.getElementById('domain-link').href = domainUrl;
+        document.getElementById('domain-link').innerText = `🔗 Проверить домен ${finalNick}.com`;
+    }
+
+    function adjustLength(struct, p, s, num, limit) {
+        if (struct === "word_num") {
+            let pCut = p.substring(0, limit - num.length);
+            return pCut + num;
+        } 
+        
+        let targetWordsLen = limit - num.length;
+        if (targetWordsLen < 2) targetWordsLen = 2;
+
+        if (struct === "word_word" || struct === "word_word_num") {
+            let partLen = Math.floor(targetWordsLen / 2);
+            let pCut = p.substring(0, partLen);
+            let sCut = s.substring(0, targetWordsLen - pCut.length);
+            return pCut + sCut + num;
+        }
+        return p + s + num;
+    }
+</script>
+</body>
+</html>
